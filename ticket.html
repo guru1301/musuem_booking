@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Booking - Indian Museum</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/dialogflow-console/fast/messenger/bootstrap.js?v=1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Inline styles for ticket booking */
+        .ticket-booking {
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 600px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .ticket-booking h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .ticket-item {
+            margin-bottom: 15px;
+        }
+
+        .ticket-item label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .ticket-item input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        #add-to-cart {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #checkout {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: transform 0.3s ease, background-color 0.3s ease; /* Smooth transition for transform and background-color */
+}
+
+        #add-to-cart:hover {
+            background-color: #0056b3;
+        }
+        
+        #cart-summary {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        #cart-summary h3 {
+            margin-top: 0;
+        }
+
+        #cart-items {
+            list-style: none;
+            padding: 0;
+        }
+
+        #cart-items li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        #total-price {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        #checkout:hover {
+    background-color: #039547;
+    transform: scale(1.05); /* Zoom effect */
+}
+
+        .camera-options {
+            display: inline-flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .camera-options input {
+            margin: 0;
+        }
+
+        /* QR Code Container */
+        .qr-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        #qr-code {
+            margin-top: 20px;
+        }
+
+        .ticket-details {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .ticket-quantity {
+    display: flex; /* Align elements in a row */
+    align-items: center; /* Vertically center the items */
+    gap: 5px; /* Adds some space between the elements */
+}
+
+.ticket-btn {
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    padding: 5px; /* Adjust padding to make the button more visible */
+    cursor: pointer;
+    font-size: 18px; /* Increased font size to make symbols visible */
+    width: 30px; /* Ensure the button has enough width */
+    height: 30px; /* Ensure the button has enough height */
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+input[type="number"] {
+    width: 40px; /* Ensure input field has enough space */
+    height: 30px; /* Match the height of the buttons */
+    text-align: center; /* Center the number */
+    font-size: 16px; /* Adjust font size for visibility */
+    margin: 0; /* Remove margin for tight alignment */
+}
+
+
+        /* Icons styling */
+        .icon {
+            margin-right: 8px;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <img src="https://indianmuseumkolkata.org/wp-content/uploads/2023/12/logo_29dec23.png" alt="Museum Logo">
+            <nav class="one">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="gallery.html">Gallery</a></li>
+                    <li><a href="ticket.html">Tickets</a></li>
+                    <li><a href="bot.html">Chatbot</a></li>
+                    <li><a href="contact.html">Contact Us</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="container">
+            <h2>Book your Tickets</h2>
+            <p>Discover the centuries-old heritage, art, and culture of the Thanjavur region at the Thanjavur Museum.</p>
+        </div>
+    </section>
+
+    <!-- Ticket Booking Section -->
+<section class="ticket-booking">
+    <div class="container">
+        <h2>Book Your Tickets</h2>
+        <form id="ticket-form">
+            <div class="ticket-item">
+                <label for="name"><i class="fas fa-user icon"></i>Name:</label>
+                <input type="text" id="name" name="name" required placeholder="Enter your name">
+            </div>
+            <div class="ticket-item">
+                <label for="email"><i class="fas fa-envelope icon"></i>Email:</label>
+                <input type="email" id="email" name="email" required placeholder="Enter your email">
+            </div>
+            <div class="ticket-item">
+                <label for="phone"><i class="fas fa-phone icon"></i>Phone Number:</label>
+                <input type="text" id="phone" name="phone" required placeholder="Enter your phone number">
+            </div>
+            <div class="ticket-item">
+                <label for="date-of-visit"><i class="fas fa-calendar-alt icon"></i>Date of Visit:</label>
+                <input type="date" id="date-of-visit" name="date-of-visit" required min="" />
+
+            </div>
+
+            <div class="ticket-item">
+                <label for="adult-tickets"><i class="fas fa-male icon"></i> Adult Tickets (50 INR each):</label>
+                <div class="ticket-quantity">
+                    <button type="button" class="ticket-btn" id="decrease-adult">-</button>
+                    <input type="number" id="adult-tickets" name="adult-tickets" min="0" value="0" readonly>
+                    <button type="button" class="ticket-btn" id="increase-adult">+</button>
+                </div>
+            </div>
+            <div class="ticket-item">
+                <label for="child-tickets"><i class="fas fa-child icon"></i> Children Tickets (20 INR each):</label>
+                <div class="ticket-quantity">
+                    <button type="button" class="ticket-btn" id="decrease-child">-</button>
+                    <input type="number" id="child-tickets" name="child-tickets" min="0" value="0" readonly>
+                    <button type="button" class="ticket-btn" id="increase-child">+</button>
+                </div>
+            </div>
+            <div class="ticket-item">
+                <label><i class="fas fa-camera icon"></i>Camera Tickets (50 INR each):</label>
+                <div class="camera-options">
+                    <input type="radio" id="camera-yes" name="camera-tickets" value="yes">
+                    <label for="camera-yes">Yes</label>
+                    <input type="radio" id="camera-no" name="camera-tickets" value="no" checked>
+                    <label for="camera-no">No</label>
+                </div>
+            </div>
+            <button type="button" id="add-to-cart"><i class="fas fa-cart-plus icon"></i>Add to Cart</button>
+        </form>
+        <div id="cart-summary">
+            <h3>Cart Summary</h3>
+            <ul id="cart-items"></ul>
+            <p id="total-price">Total Price: 0 INR</p>
+            <button id="checkout"><i class="fas fa-credit-card icon"></i>Checkout</button>
+        </div>
+    </div>
+</section>
+
+<!-- Dialogflow Messenger Element -->
+<div id="chatbot-container">
+    <df-messenger
+      intent="WELCOME"
+      chat-title="chat-bot"
+      agent-id="78900d2b-ae24-49df-9988-14e38184eb6f"
+      language-code="en">
+    </df-messenger>
+</div>
+
+<!-- Footer Section -->
+<footer>
+    <div class="footer-bar">
+        <p>&copy; 2024 The Indian Museum | Privacy Policy | Terms & Conditions</p>
+    </div>
+</footer>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+
+<script>
+    // Set today's date as the minimum date for the date picker
+const today = new Date();
+const dd = String(today.getDate()).padStart(2, '0');
+const mm = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed
+const yyyy = today.getFullYear();
+
+const formattedDate = yyyy + '-' + mm + '-' + dd;
+document.getElementById('date-of-visit').setAttribute('min', formattedDate);
+
+    // Increment/Decrement for Adult Tickets
+    document.getElementById('increase-adult').addEventListener('click', function() {
+        const adultTickets = document.getElementById('adult-tickets');
+        adultTickets.value = parseInt(adultTickets.value) + 1;
+        updateCart();  // Update cart after change
+    });
+
+    document.getElementById('decrease-adult').addEventListener('click', function() {
+        const adultTickets = document.getElementById('adult-tickets');
+        if (parseInt(adultTickets.value) > 0) {
+            adultTickets.value = parseInt(adultTickets.value) - 1;
+            updateCart();  // Update cart after change
+        }
+    });
+
+    // Increment/Decrement for Child Tickets
+    document.getElementById('increase-child').addEventListener('click', function() {
+        const childTickets = document.getElementById('child-tickets');
+        childTickets.value = parseInt(childTickets.value) + 1;
+        updateCart();  // Update cart after change
+    });
+
+    document.getElementById('decrease-child').addEventListener('click', function() {
+        const childTickets = document.getElementById('child-tickets');
+        if (parseInt(childTickets.value) > 0) {
+            childTickets.value = parseInt(childTickets.value) - 1;
+            updateCart();  // Update cart after change
+        }
+    });
+
+    // Function to update cart summary
+    function updateCart() {
+        const adultTickets = parseInt(document.getElementById('adult-tickets').value) || 0;
+        const childTickets = parseInt(document.getElementById('child-tickets').value) || 0;
+        const cameraTickets = document.querySelector('input[name="camera-tickets"]:checked').value;
+
+        const cartItems = [];
+        let totalPrice = 0;
+
+        if (adultTickets > 0) {
+            cartItems.push(`Adult Tickets: ${adultTickets} x 50 INR`);
+            totalPrice += adultTickets * 50;
+        }
+        if (childTickets > 0) {
+            cartItems.push(`Children Tickets: ${childTickets} x 20 INR`);
+            totalPrice += childTickets * 20;
+        }
+        if (cameraTickets === "yes") {
+            cartItems.push(`Camera Tickets: 1 x 50 INR`);
+            totalPrice += 50;
+        }
+
+        const cartItemsList = document.getElementById('cart-items');
+        cartItemsList.innerHTML = cartItems.map(item => `<li>${item}</li>`).join('');
+
+        const totalPriceText = document.getElementById('total-price');
+        totalPriceText.textContent = `Total Price: ${totalPrice} INR`;
+    }
+
+    // Add to Cart Button
+    document.getElementById('add-to-cart').addEventListener('click', function() {
+        updateCart();
+    });
+
+        document.getElementById('checkout').addEventListener('click', function () {
+    const totalPriceText = document.getElementById('total-price').textContent;
+    const totalPrice = parseInt(totalPriceText.replace(/\D/g, '')) || 0;
+
+    if (totalPrice === 0) {
+        alert('Your cart is empty! Please add items to the cart.');
+        return;
+    }
+
+    const dateOfVisit = document.getElementById('date-of-visit').value;
+    if (!dateOfVisit) {
+        alert('Please select a Date of Visit.');
+        return;
+    }
+
+    const userName = document.getElementById('name').value;
+    const userPhone = document.getElementById('phone').value;
+    const email = document.getElementById('email').value;
+    const adultTickets = parseInt(document.getElementById('adult-tickets').value) || 0;
+    const childTickets = parseInt(document.getElementById('child-tickets').value) || 0;
+    const cameraTickets = document.querySelector('input[name="camera-tickets"]:checked').value === "yes" ? "Yes" : "No";
+
+    const options = {
+        key: "rzp_test_VU7G23ElHpKfH3",
+        amount: totalPrice * 100,
+        currency: "INR",
+        name: "Indian Museum",
+        description: "Ticket Booking",
+        image: "https://indianmuseumkolkata.org/wp-content/uploads/2023/12/logo_29dec23.png",
+        handler: function (response) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Get current date and time for the transaction
+            const transactionDate = new Date().toLocaleString(); // Date and time in a readable format (localized)
+
+            // Add Border
+            const pageWidth = doc.internal.pageSize.width;
+            const pageHeight = doc.internal.pageSize.height;
+            doc.setDrawColor(0);
+            doc.setLineWidth(0.5);
+            doc.rect(5, 5, pageWidth - 10, pageHeight - 10);
+
+            // Add Logo
+            const logoWidth = 180, logoHeight = 25;
+            const logoX = (doc.internal.pageSize.width - logoWidth) / 2;
+            doc.addImage("./images/banner.png", "PNG", logoX, 15, logoWidth, logoHeight);
+
+            // Add Watermark Logo (centered with 40% opacity)
+            const watermarkWidth = 100, watermarkHeight = 40;
+            const watermarkX = (pageWidth - watermarkWidth) / 2;
+            const watermarkY = (pageHeight - watermarkHeight) / 2; // Center vertically
+            doc.setGState(new doc.GState({ opacity: 0.2 })); // Set opacity to 40%
+            doc.addImage("./images/logo.png", "PNG", watermarkX, watermarkY, watermarkWidth, watermarkHeight);
+            doc.setGState(new doc.GState({ opacity: 1 })); // Reset opacity to 100%
+
+            // Add Header
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.setTextColor(0, 51, 153); // Blue
+            doc.text("District Collectorate Museum - Thanjavur", 105, 50, null, null, "center");
+
+            // Add Address Below Museum Name
+            doc.setFontSize(10); // Adjusting font size for address
+            doc.setTextColor(0); // Light Blue
+            doc.text("Q4MP+2P2, Shivaji Nagar, Thanjavur, Tamil Nadu 613001", 105, 58, null, null, "center");
+
+            // Add Slogan Below Address
+            doc.setFontSize(12); // Adjusting font size for slogan
+            doc.setTextColor(0);
+            doc.text("Discover the centuries-old heritage, art, and culture of the Thanjavur region.", 105, 68, null, null, "center");
+
+            // Separator Line
+            doc.setLineWidth(0.5);
+            doc.setDrawColor(0); // Black
+            doc.line(10, 75, 200, 75);
+
+            // Visitor Details Section
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.setTextColor(0, 102, 204); // Light Blue
+            doc.text("Visitor Details", 10, 85);
+
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(0);
+            doc.text(`Name: ${userName}`, 10, 95);
+            doc.text(`Phone: ${userPhone}`, 10, 105);
+            doc.text(`Email: ${email}`, 10, 115);
+            doc.text(`Date of Visit: ${dateOfVisit}`, 10, 125);
+
+            // QR Code Parallel to Visitor Details
+            const qrCodeCanvas = document.createElement('canvas');
+            const bookingDetails = `Booking ID: ${response.razorpay_payment_id}\nName: ${userName}\nDate of Visit: ${dateOfVisit}\nTotal Price: ${totalPrice} INR`;
+            QRCode.toCanvas(qrCodeCanvas, bookingDetails, function (error) {
+                if (error) {
+                    console.error(error);
+                    return;
+                }
+                const imgData = qrCodeCanvas.toDataURL("image/png");
+                doc.addImage(imgData, "PNG", 150, 85, 50, 50); // Positioned on the right, parallel to Visitor Details
+
+                // Separator Line Below Visitor Details and QR Code
+                doc.line(10, 140, 200, 140);
+
+                // Payment Details Section
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(14);
+                doc.setTextColor(0, 102, 204); // Light Blue
+                doc.text("Payment Details", 10, 150);
+
+                doc.setFontSize(12);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(0);
+                doc.text(`Adult Tickets: ${adultTickets}`, 10, 160);
+                doc.text(`Children Tickets: ${childTickets}`, 10, 170);
+                doc.text(`Camera Ticket: ${cameraTickets}`, 10, 180);
+                doc.text(`Total Price: ${totalPrice} INR`, 10, 190);
+
+                // Add Transaction Date and Payment ID
+                doc.text(`Transaction Date: ${transactionDate}`, 10, 200);
+                doc.text(`Payment ID: ${response.razorpay_payment_id}`, 10, 210);
+
+                // Separator Line Below Payment Details
+                doc.line(10, 215, 200, 215);
+
+                // Instructions Section
+                doc.setFont("helvetica", "bold");
+                doc.setFontSize(14);
+                doc.setTextColor(0, 102, 204);
+                doc.text("Instructions", 10, 225);
+
+                doc.setFontSize(10);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(0);
+                const instructions = [
+                    "1. Please bring this PDF along with a valid ID on the day of the visit.",
+                    "2. Ensure the QR code is clear and scannable for seamless entry.",
+                    "3. Entry is permitted only during the selected Date of Visit.",
+                    "4. For any queries, contact support at support@museum.com."
+                ];
+                instructions.forEach((instruction, index) => {
+                    doc.text(instruction, 10, 235 + index * 10);
+                });
+
+                // Footer
+                doc.setFontSize(8);
+                doc.setFont("helvetica", "italic");
+                doc.setTextColor(150);
+                doc.text("Thank you for visiting the District Collectorate Museum - Thanjavur.", 105, 280, null, null, "center");
+
+                // Save the PDF
+                doc.save("ticket_booking_details.pdf");
+            });
+        },
+        prefill: {
+            name: userName,
+            email: email,
+            contact: userPhone,
+        },
+        notes: {
+            dateOfVisit: dateOfVisit
+        },
+        theme: {
+            color: "#007bff"
+        }
+    };
+
+    const rzp1 = new Razorpay(options);
+    rzp1.open();
+});
+
+
+    </script>
+</body>
+</html>
